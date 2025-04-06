@@ -8,8 +8,8 @@ namespace ChatAPI
 
         public static async Task<string> callAzureService(string chatMessage)
         {
-            var endpoint = new Uri(Environment.GetEnvironmentVariable("API_URL"));
-            var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("API_KEY"));
+            var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
+            var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
             var model = "gpt-4o-mini";
 
             var client = new ChatCompletionsClient(
