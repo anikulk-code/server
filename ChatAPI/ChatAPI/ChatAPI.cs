@@ -68,24 +68,10 @@ namespace ChatAPI
                         logger.LogError("Request body is null");
                         return (chatRequest, requestBody);
                     }
-
+                    logger.LogInformation("Request body: " + requestBody);
                     chatRequest = JsonSerializer.Deserialize<ChatRequest>(requestBody);
                     return (chatRequest, requestBody);
 
-                    //JsonDocument json = JsonDocument.Parse(requestBody);
-
-                    //var messages = json.RootElement.GetProperty("message");
-                    //logger.LogInformation("Parsed messages element from JSON");
-                    //if (messages.ValueKind == JsonValueKind.Array && messages.GetArrayLength() > 0)
-                    //{
-                    //    logger.LogInformation("Found an array of length:"+ messages.GetArrayLength());
-
-                    //    var tempChatMessages = messages.EnumerateArray().Select(m => m.GetString()).Where(m => !string.IsNullOrEmpty(m)).ToArray();
-                    //    if (tempChatMessages.Length>0)
-                    //    {
-                    //        return (tempChatMessages, requestBody);
-                    //    }
-                    //}
                 }
                 catch (JsonException ex)
                 {
@@ -112,25 +98,4 @@ namespace ChatAPI
             return responseData;
         }
     }
-}
-class Response
-{
-    public string? reply { get; set; }
-    public DateTime date { get; set; }
-}
-
-
-public class ChatRequest
-{
-    [JsonPropertyName("message")]
-    public List<ChatMessage> Messages { get; set; }
-}
-
-public class ChatMessage
-{
-    [JsonPropertyName("role")]
-    public string Role { get; set; }
-
-    [JsonPropertyName("content")]
-    public string Content { get; set; }
 }
