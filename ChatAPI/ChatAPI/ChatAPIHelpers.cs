@@ -11,7 +11,7 @@ namespace ChatAPI
             var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
             var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
 
-            if(string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(credential))
+            if (string.IsNullOrEmpty(endpoint?.ToString()) || string.IsNullOrEmpty(credential?.ToString()))
             {
                 return "Could not read endpoint or credential";
             }
