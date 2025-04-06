@@ -44,7 +44,7 @@ namespace ChatAPI
             var response = req.HttpContext.Response;
             response.Headers.Append("Access-Control-Allow-Origin", "*");
 
-            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages);
+            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, _logger);
             var responseData = new
             {
                 reply = responseFromModel,
@@ -86,10 +86,10 @@ namespace ChatAPI
             }
         }
 
-        private static global::System.Object HandleErrorCase()
+        private static Response HandleErrorCase()
         {
             var message = "The chat message needs to be in a prop called message";
-            var responseData = new
+            Response responseData = new Response()
             {
                 reply = message,
                 date = DateTime.UtcNow
@@ -97,4 +97,9 @@ namespace ChatAPI
             return responseData;
         }
     }
+}
+class Response
+{
+    public string? reply { get; set; }
+    public DateTime date { get; set; }
 }

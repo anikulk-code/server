@@ -1,12 +1,13 @@
 ﻿using Azure;
 using Azure.AI.Inference;
+using Microsoft.Extensions.Logging;
 
 namespace ChatAPI
 {
     internal static class ChatAPIHelpers
     {
 
-        public static async Task<string> callAzureService(string[] chatMessages)
+        public static async Task<string> callAzureService(string[] chatMessages, ILogger<ChatAPI> _logger)
         {
             var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
             var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
@@ -22,9 +23,25 @@ namespace ChatAPI
                 endpoint,
                 credential);
 
+            if (chatMessages==null||chatMessages.Count() ==0)
+            {
+                _logger.LogError("Chat messages are null or empty");
+                return "Chat messages are null or empty";
+            }
+            else
+            {
+                _logger.LogInformation("Chat messages count before calling AI API:" + chatMessages.Count());
+            }
+
+            List<ChatRequestMessage> chatMessagesList = new List<ChatRequestMessage>();
+            foreach (var message in chatMessages)
+            {
+                chatMessagesList.Add(new ChatRequestUserMessage(message));
+            }
+
             var requestOptions = new ChatCompletionsOptions()
             {
-                Messages = chatMessages.Select(m => new ChatRequestUserMessage(m)).ToArray(),
+                Messages = chatMessagesList,
                 //Messages =
                 //{
                 //    chatMessages.Select(m => new ChatRequestUserMessage(m)).ToArray(),
