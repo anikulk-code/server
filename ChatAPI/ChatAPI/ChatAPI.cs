@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using System.Linq.Expressions;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 namespace ChatAPI
@@ -22,13 +23,13 @@ namespace ChatAPI
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            string[] chatMessages = null;
+            ChatRequest chatMessages = null;
 
             try
             {
                 string requestBody = string.Empty;
 
-                (chatMessages, requestBody) = await GetChatMessagesFromRequest(req);
+                (chatMessages, requestBody) = await GetChatMessagesFromRequest(req, _logger);
                 if (string.IsNullOrEmpty(requestBody) || chatMessages == null)
                 {
                     var errorResponse = HandleErrorCase();
@@ -53,24 +54,38 @@ namespace ChatAPI
             return new OkObjectResult(responseData);
         }
 
-        private static async Task<(string[] chatMessages, string requestBody)> GetChatMessagesFromRequest(HttpRequest req)
+        private static async Task<(ChatRequest, string requestBody)> GetChatMessagesFromRequest(HttpRequest req, ILogger<ChatAPI> logger)
         {
+            ChatRequest chatRequest = null;
             using (StreamReader reader = new StreamReader(req.Body))
             {
                 string requestBody = await reader.ReadToEndAsync();
 
                 try
                 {
-                    JsonDocument json = JsonDocument.Parse(requestBody);
-                    var messages = json.RootElement.GetProperty("message");
-                    if (messages.ValueKind == JsonValueKind.Array && messages.GetArrayLength() > 0)
+                    if (string.IsNullOrEmpty(requestBody))
                     {
-                        var tempChatMessages = messages.EnumerateArray().Select(m => m.GetString()).Where(m => !string.IsNullOrEmpty(m)).ToArray();
-                        if (tempChatMessages.Length>0)
-                        {
-                            return (tempChatMessages, requestBody);
-                        }
+                        logger.LogError("Request body is null");
+                        return (chatRequest, requestBody);
                     }
+
+                    chatRequest = JsonSerializer.Deserialize<ChatRequest>(requestBody);
+                    return (chatRequest, requestBody);
+
+                    //JsonDocument json = JsonDocument.Parse(requestBody);
+
+                    //var messages = json.RootElement.GetProperty("message");
+                    //logger.LogInformation("Parsed messages element from JSON");
+                    //if (messages.ValueKind == JsonValueKind.Array && messages.GetArrayLength() > 0)
+                    //{
+                    //    logger.LogInformation("Found an array of length:"+ messages.GetArrayLength());
+
+                    //    var tempChatMessages = messages.EnumerateArray().Select(m => m.GetString()).Where(m => !string.IsNullOrEmpty(m)).ToArray();
+                    //    if (tempChatMessages.Length>0)
+                    //    {
+                    //        return (tempChatMessages, requestBody);
+                    //    }
+                    //}
                 }
                 catch (JsonException ex)
                 {
@@ -82,7 +97,7 @@ namespace ChatAPI
                     // Handle other errors
                     Console.WriteLine($"Error: {ex.Message}");
                 }
-                return (Array.Empty<string>(), requestBody);
+                return (chatRequest, requestBody);
             }
         }
 
@@ -102,4 +117,20 @@ class Response
 {
     public string? reply { get; set; }
     public DateTime date { get; set; }
+}
+
+
+public class ChatRequest
+{
+    [JsonPropertyName("message")]
+    public List<ChatMessage> Messages { get; set; }
+}
+
+public class ChatMessage
+{
+    [JsonPropertyName("role")]
+    public string Role { get; set; }
+
+    [JsonPropertyName("content")]
+    public string Content { get; set; }
 }

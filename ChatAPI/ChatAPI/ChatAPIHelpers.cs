@@ -7,8 +7,16 @@ namespace ChatAPI
     internal static class ChatAPIHelpers
     {
 
-        public static async Task<string> callAzureService(string[] chatMessages, ILogger<ChatAPI> _logger)
+        public static async Task<string> callAzureService(ChatRequest chatRequest, ILogger<ChatAPI> _logger)
         {
+            if (chatRequest==null|| chatRequest.Messages== null || chatRequest.Messages.Count == 0)
+            {
+                _logger.LogError("Chat messages are null or empty");
+                return "Chat messages are null or empty";
+            }
+
+            _logger.LogInformation("Chat messages count before calling AI API:" + chatRequest.Messages.Count);
+
             var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
             var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
 
@@ -23,20 +31,23 @@ namespace ChatAPI
                 endpoint,
                 credential);
 
-            if (chatMessages==null||chatMessages.Count() ==0)
-            {
-                _logger.LogError("Chat messages are null or empty");
-                return "Chat messages are null or empty";
-            }
-            else
-            {
-                _logger.LogInformation("Chat messages count before calling AI API:" + chatMessages.Count());
-            }
 
             List<ChatRequestMessage> chatMessagesList = new List<ChatRequestMessage>();
-            foreach (var message in chatMessages)
+            foreach (var message in chatRequest.Messages)
             {
-                chatMessagesList.Add(new ChatRequestUserMessage(message));
+                if (string.Equals(message.Role, "user", StringComparison.OrdinalIgnoreCase))
+                {
+                    chatMessagesList.Add(new ChatRequestUserMessage(message.Content));
+                }
+                else if (string.Equals(message.Role, "assistant", StringComparison.OrdinalIgnoreCase))
+                {
+                    chatMessagesList.Add(new ChatRequestAssistantMessage(message.Content));
+                }
+                else
+                {
+                    _logger.LogError("Invalid role in chat message: " + message.Role);
+                    //chatMessagesList.Add(new ChatRequestSystemMessage(message));
+                }
             }
 
             var requestOptions = new ChatCompletionsOptions()
