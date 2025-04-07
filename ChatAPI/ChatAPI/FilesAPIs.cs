@@ -1,3 +1,4 @@
+using ChatAPI.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,9 +11,9 @@ namespace ChatAPI
     public class FilesAPIs
     {
         private readonly ILogger<FilesAPIs> _logger;
-        private readonly BlobAPI blobAPI;
+        private readonly BlobService blobAPI;
 
-        public FilesAPIs(ILogger<FilesAPIs> logger, BlobAPI blobAPI)
+        public FilesAPIs(ILogger<FilesAPIs> logger, BlobService blobAPI)
         {
             _logger = logger;
             this.blobAPI = blobAPI;

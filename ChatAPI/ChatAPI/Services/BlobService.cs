@@ -5,16 +5,16 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 
-namespace ChatAPI
+namespace ChatAPI.Services
 {
-    public class BlobAPI
+    public class BlobService
     {
-        ILogger<BlobAPI> _logger;
+        ILogger<BlobService> _logger;
         const string blobUrl = "https://chatfilesani.blob.core.windows.net/";
         const string containerName = "common";
         string accountName = "chatfilesani";
         BlobContainerClient containerClient;
-        public BlobAPI(ILogger<BlobAPI> logger)
+        public BlobService(ILogger<BlobService> logger)
         {
             _logger = logger;
             var connectionString = Environment.GetEnvironmentVariable("BLOB_CONNECTION_STRING");

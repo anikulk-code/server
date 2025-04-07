@@ -2,12 +2,30 @@
 using Azure.AI.Inference;
 using Microsoft.Extensions.Logging;
 
-namespace ChatAPI
+namespace ChatAPI.Services
 {
-    internal static class ChatAPIHelpers
+    public class CompletionService
     {
+        private readonly ILogger<CompletionService> logger = null;
+        private readonly ChatCompletionsClient chatCompletionsClient = null;
+        const string model = "gpt-4o-mini";
+        public CompletionService(ILogger<CompletionService> logger)
+        {
+            this.logger = logger;
+            var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
+            var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
 
-        public static async Task<string> callAzureService(ChatRequest chatRequest, string userContext, string contextFromUrl, ILogger<ChatAPI> _logger)
+            if (string.IsNullOrEmpty(endpoint?.ToString()) || string.IsNullOrEmpty(credential?.ToString()))
+            {
+                logger.LogError("Could not read endpoint or credential");
+            }
+
+            chatCompletionsClient = new ChatCompletionsClient(
+                endpoint,
+                credential);
+        }
+
+        public async Task<string> callAzureService(ChatRequest chatRequest, string userContext, string contextFromUrl, ILogger<ChatAPI> _logger)
         {
             if (chatRequest==null|| chatRequest.Messages== null || chatRequest.Messages.Count == 0)
             {
@@ -16,21 +34,6 @@ namespace ChatAPI
             }
 
             _logger.LogInformation("Chat messages count before calling AI API:" + chatRequest.Messages.Count);
-
-            var endpoint = new Uri(Environment.GetEnvironmentVariable("MODEL_API_URL"));
-            var credential = new AzureKeyCredential(Environment.GetEnvironmentVariable("MODEL_API_KEY"));
-
-            if (string.IsNullOrEmpty(endpoint?.ToString()) || string.IsNullOrEmpty(credential?.ToString()))
-            {
-                return "Could not read endpoint or credential";
-            }
-
-            var model = "gpt-4o-mini";
-
-            var client = new ChatCompletionsClient(
-                endpoint,
-                credential);
-
 
             List<ChatRequestMessage> chatMessagesList = new List<ChatRequestMessage>();
 
@@ -62,7 +65,7 @@ namespace ChatAPI
                 {
                     _logger.LogError("Invalid role in chat message: " + message.Role);
                 }
-                if(userMessageCount>=3 && assistantMessageCount>= 3)
+                if (userMessageCount>=3 && assistantMessageCount>= 3)
                 {
                     break;
                 }
@@ -77,7 +80,7 @@ namespace ChatAPI
                 Model = model
             };
 
-            Response<ChatCompletions> response = await client.CompleteAsync(requestOptions);
+            Response<ChatCompletions> response = await chatCompletionsClient.CompleteAsync(requestOptions);
             return response.Value.Content;
         }
     }

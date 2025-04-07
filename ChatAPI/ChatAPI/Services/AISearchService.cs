@@ -4,15 +4,15 @@ using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 
-namespace ChatAPI
+namespace ChatAPI.Services
 {
-    public class AISearch
+    public class AISearchService
     {
         public const string url = "https://aisearchani.search.windows.net";
 
-        private readonly ILogger<AISearch> logger;
+        private readonly ILogger<AISearchService> logger;
         SearchIndexClient indexClient;
-        public AISearch(ILogger<AISearch> logger)
+        public AISearchService(ILogger<AISearchService> logger)
         {
             this.logger = logger;
         }

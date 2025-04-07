@@ -1,3 +1,4 @@
+using ChatAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -13,12 +14,14 @@ namespace ChatAPI
     public class ChatAPI
     {
         private readonly ILogger<ChatAPI> _logger;
-        private readonly AISearch aiSearch;
+        private readonly AISearchService aiSearch;
+        private readonly CompletionService completionService;
 
-        public ChatAPI(ILogger<ChatAPI> logger, AISearch aiSearch)
+        public ChatAPI(ILogger<ChatAPI> logger, AISearchService aiSearch, CompletionService completionService  )
         {
             _logger = logger;
             this.aiSearch=aiSearch;
+            this.completionService=completionService;
         }
 
         [Function("ChatAPI")]
@@ -52,7 +55,7 @@ namespace ChatAPI
 
             string urlContext = await FetchUrlContent(chatMessages);
 
-            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, context??"", urlContext??"", _logger);
+            var responseFromModel = await completionService.callAzureService(chatMessages, context??"", urlContext??"", _logger);
             var responseData = new
             {
                 reply = responseFromModel,
