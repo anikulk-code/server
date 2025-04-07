@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
-namespace ChatAPI
+namespace ChatAPI.Misc
 {
     public static class Utils
     {

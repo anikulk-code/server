@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.AI.Inference;
+using ChatAPI.Misc;
 using Microsoft.Extensions.Logging;
 
 namespace ChatAPI.Services
