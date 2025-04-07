@@ -38,5 +38,17 @@ namespace ChatAPI
             var blobClient = containerClient.GetBlobClient(fileName);
             return await blobClient.DeleteIfExistsAsync();
         }
+
+        public async Task<string[]> ListFileNames()
+        {
+            var blobNames = new List<string>();
+
+            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
+            {
+                blobNames.Add(blobItem.Name);
+            }
+
+            return blobNames.ToArray();
+        }
     }
 }

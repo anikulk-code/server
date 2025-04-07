@@ -54,7 +54,7 @@ namespace ChatAPI
 
         [Function("DeleteFile")]
         public async Task<HttpResponseData> DeleteFile(
-       [HttpTrigger(AuthorizationLevel.Anonymous, "DeleteFile", Route = "delete/{fileName}")] HttpRequestData req,
+       [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "delete/{fileName}")] HttpRequestData req,
        string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -68,6 +68,18 @@ namespace ChatAPI
 
             var response = req.CreateResponse(deleted ? HttpStatusCode.OK : HttpStatusCode.NotFound);
             await response.WriteStringAsync(deleted ? "Deleted" : "File not found");
+            return response;
+        }
+
+
+        [Function("ListFiles")]
+        public async Task<HttpResponseData> ListFiles(
+       [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req,
+       string fileName)
+        {
+            var blobNames = await blobAPI.ListFileNames();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(blobNames);
             return response;
         }
     }
