@@ -49,7 +49,7 @@ namespace ChatAPI
             response = await blobAPI.UploadFileAsync(section.Body, fileName);
 
             var successResponse = req.CreateResponse(HttpStatusCode.OK);
-            await successResponse.WriteStringAsync(response ?? "");
+            await successResponse.WriteAsJsonAsync(new { url = response ?? "" });
             return successResponse;
         }
 
