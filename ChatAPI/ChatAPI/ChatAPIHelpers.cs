@@ -44,31 +44,33 @@ namespace ChatAPI
                 chatMessagesList.Add(new ChatRequestAssistantMessage("Please use this context from the url mentioned in the query: " + contextFromUrl));
             }
 
+            int userMessageCount = 0;
+            int assistantMessageCount = 0;
             foreach (var message in chatRequest.Messages)
             {
                 if (string.Equals(message.Role, "user", StringComparison.OrdinalIgnoreCase))
                 {
                     chatMessagesList.Add(new ChatRequestUserMessage(message.Content));
+                    userMessageCount++;
                 }
                 else if (string.Equals(message.Role, "assistant", StringComparison.OrdinalIgnoreCase))
                 {
                     chatMessagesList.Add(new ChatRequestAssistantMessage(message.Content));
+                    assistantMessageCount++;
                 }
                 else
                 {
                     _logger.LogError("Invalid role in chat message: " + message.Role);
-                    //chatMessagesList.Add(new ChatRequestSystemMessage(message));
+                }
+                if(userMessageCount>=3 && assistantMessageCount>= 3)
+                {
+                    break;
                 }
             }
 
             var requestOptions = new ChatCompletionsOptions()
             {
                 Messages = chatMessagesList,
-                //Messages =
-                //{
-                //    chatMessages.Select(m => new ChatRequestUserMessage(m)).ToArray(),
-                //    new ChatRequestUserMessage(chatMessages.LastOrDefault())
-                //},
                 MaxTokens = 4096,
                 Temperature = 1.0f,
                 //top_p = 1.0f,
