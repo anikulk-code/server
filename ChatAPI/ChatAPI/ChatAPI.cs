@@ -47,15 +47,62 @@ namespace ChatAPI
             var response = req.HttpContext.Response;
             response.Headers.Append("Access-Control-Allow-Origin", "*");
 
-            var results = aiSearch.Search("");
+            string context = await ExtractUserContext(chatMessages);
 
-            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, results?.Result??"", _logger);
+
+            string urlContext = await FetchUrlContent(chatMessages);
+
+            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, context??"", urlContext??"", _logger);
             var responseData = new
             {
                 reply = responseFromModel,
                 date = DateTime.UtcNow
             };
             return new OkObjectResult(responseData);
+        }
+
+        private async Task<string> FetchUrlContent(ChatRequest chatMessages)
+        {
+            string urlContext = string.Empty;
+            string userQuery = ExtractUserQuery(chatMessages);
+            if (!string.IsNullOrEmpty(userQuery))
+            {
+                var urls = Utils.ExtractUrl(userQuery, _logger);
+                if (urls!=null && urls.Count() > 0)
+                {
+                    foreach (var url in urls)
+                    {
+                        string crawledContent = await Utils.CrawlUrl(url, _logger);
+                        if (!string.IsNullOrEmpty(crawledContent))
+                        {
+                            urlContext += crawledContent;
+                        }
+                    }
+                }
+            }
+
+            return urlContext;
+        }
+
+        private async Task<string> ExtractUserContext(ChatRequest chatMessages)
+        {
+            string context = string.Empty;
+            string userQuery = ExtractUserQuery(chatMessages);
+            if (string.IsNullOrEmpty(userQuery))
+            {
+                context = await aiSearch.Search(userQuery);
+            }
+            if (string.IsNullOrEmpty(context))
+            {
+                context = await aiSearch.Search("*");
+            }
+
+            return context;
+        }
+
+        private static string ExtractUserQuery(ChatRequest chatMessages)
+        {
+            return chatMessages.Messages.Where(m => m.Role=="user").LastOrDefault()?.Content;
         }
 
         private static async Task<(ChatRequest, string requestBody)> GetChatMessagesFromRequest(HttpRequest req, ILogger<ChatAPI> logger)

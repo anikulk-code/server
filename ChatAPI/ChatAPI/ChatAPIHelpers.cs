@@ -7,7 +7,7 @@ namespace ChatAPI
     internal static class ChatAPIHelpers
     {
 
-        public static async Task<string> callAzureService(ChatRequest chatRequest, string context, ILogger<ChatAPI> _logger)
+        public static async Task<string> callAzureService(ChatRequest chatRequest, string userContext, string contextFromUrl, ILogger<ChatAPI> _logger)
         {
             if (chatRequest==null|| chatRequest.Messages== null || chatRequest.Messages.Count == 0)
             {
@@ -32,7 +32,18 @@ namespace ChatAPI
                 credential);
 
 
-            List<ChatRequestMessage> chatMessagesList = [new ChatRequestAssistantMessage("Please use this context: " + context)];
+            List<ChatRequestMessage> chatMessagesList = new List<ChatRequestMessage>();
+
+            if (!string.IsNullOrEmpty(userContext))
+            {
+                chatMessagesList.Add(new ChatRequestAssistantMessage("Please use this context about the user: " + userContext));
+            }
+
+            if (!string.IsNullOrEmpty(contextFromUrl))
+            {
+                chatMessagesList.Add(new ChatRequestAssistantMessage("Please use this context from the url mentioned in the query: " + contextFromUrl));
+            }
+
             foreach (var message in chatRequest.Messages)
             {
                 if (string.Equals(message.Role, "user", StringComparison.OrdinalIgnoreCase))

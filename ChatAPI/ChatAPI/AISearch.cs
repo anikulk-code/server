@@ -23,11 +23,10 @@ namespace ChatAPI
             const string indexName = "docs-index1";
             SearchClient searchClient = new SearchClient(new Uri(url), indexName, new AzureKeyCredential(key));
 
-            var userQuery = "Tell me more about Aniruddha?";
-            var searchResults = await searchClient.SearchAsync<SearchDocument>(userQuery);
+            var searchResults = await searchClient.SearchAsync<SearchDocument>(query);
             if (searchResults==null)
             {
-                logger.LogError("No results found for query: " + userQuery);
+                logger.LogError("No results found for query: " + query);
                 return string.Empty;
             }
 
