@@ -54,7 +54,7 @@ namespace ChatAPI
 
         [Function("DeleteFile")]
         public async Task<HttpResponseData> DeleteFile(
-       [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "delete/{fileName}")] HttpRequestData req,
+       [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "DeleteFile/{fileName}")] HttpRequestData req,
        string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
