@@ -13,10 +13,12 @@ namespace ChatAPI
     public class ChatAPI
     {
         private readonly ILogger<ChatAPI> _logger;
+        private readonly AISearch aiSearch;
 
-        public ChatAPI(ILogger<ChatAPI> logger)
+        public ChatAPI(ILogger<ChatAPI> logger, AISearch aiSearch)
         {
             _logger = logger;
+            this.aiSearch=aiSearch;
         }
 
         [Function("ChatAPI")]
@@ -45,7 +47,9 @@ namespace ChatAPI
             var response = req.HttpContext.Response;
             response.Headers.Append("Access-Control-Allow-Origin", "*");
 
-            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, _logger);
+            var results = aiSearch.Search("");
+
+            var responseFromModel = await ChatAPIHelpers.callAzureService(chatMessages, results?.Result??"", _logger);
             var responseData = new
             {
                 reply = responseFromModel,
